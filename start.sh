@@ -1,10 +1,9 @@
 #!/bin/bash
-echo "==> تشغيل السيرفر..."
-node index.js &
-SERVER_PID=$!
+export PUPPETEER_CACHE_DIR=/opt/render/project/src/.cache/puppeteer
 
-echo "==> تثبيت Chrome في الخلفية..."
-npx puppeteer browsers install chrome
+echo "==> تثبيت Chrome..."
+npx puppeteer browsers install chrome --path $PUPPETEER_CACHE_DIR
 echo "==> Chrome جاهز ✅"
 
-wait $SERVER_PID
+echo "==> تشغيل البوت..."
+node index.js
