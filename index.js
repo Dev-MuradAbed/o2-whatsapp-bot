@@ -1,6 +1,21 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
+const client = new Client({
+  authStrategy: new LocalAuth(),
+  puppeteer: {
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--no-zygote',
+      '--single-process'
+    ]
+  }
+});
+
 // ===================================
 //   ردود البوت - عدّلها كما تريد
 // ===================================
@@ -129,9 +144,6 @@ const defaultReply = `شكراً على رسالتك! 🤖
 
 أو اتصل بنا: 9200`;
 
-// ===================================
-//   منطق البوت - لا تعدّل هنا
-// ===================================
 function findReply(msg) {
   const lower = msg.toLowerCase().trim();
   for (const r of replies) {
@@ -141,22 +153,6 @@ function findReply(msg) {
   }
   return null;
 }
-
-const client = new Client({
-  authStrategy: new LocalAuth(),
-  puppeteer: {
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--no-first-run',
-      '--no-zygote',
-      '--single-process',
-      '--disable-gpu'
-    ]
-  }
-});
 
 client.on('qr', qr => {
   console.log('\n==========================================');
@@ -183,10 +179,7 @@ client.on('disconnected', (reason) => {
 
 client.on('message', async msg => {
   try {
-    // تجاهل رسائل المجموعات
     if (msg.from.endsWith('@g.us')) return;
-
-    // تجاهل رسائل البوت نفسه
     if (msg.fromMe) return;
 
     console.log(`رسالة من ${msg.from}: ${msg.body}`);
