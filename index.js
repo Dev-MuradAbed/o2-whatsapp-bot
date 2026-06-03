@@ -1,5 +1,26 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
+const QRCode = require('qrcode');
+const http = require('http');
+
+let currentQR = '';
+
+http.createServer((req, res) => {
+  if (req.url === '/qr') {
+    if (!currentQR) {
+      res.writeHead(200, {'Content-Type': 'text/html'});
+      res.end('<h2>QR Code لم يظهر بعد، انتظر ثانية وأعد التحميل</h2>');
+      return;
+    }
+    QRCode.toDataURL(currentQR, (err, url) => {
+      res.writeHead(200, {'Content-Type': 'text/html'});
+      res.end(`<img src="${url}" style="width:300px"/>`);
+    });
+  } else {
+    res.writeHead(200);
+    res.end('Bot is running');
+  }
+}).listen(process.env.PORT || 3000);
 const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
