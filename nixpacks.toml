@@ -1,7 +1,0 @@
-[phases.setup]
-nixPkgs = ["nodejs_18", "chromium"]
-
-[variables]
-PUPPETEER_SKIP_CHROMIUM_DOWNLOAD = "true"
-PUPPETEER_EXECUTABLE_PATH = "/nix/var/nix/profiles/default/bin/chromium"
-NODE_OPTIONS = "--max-old-space-size=512"
