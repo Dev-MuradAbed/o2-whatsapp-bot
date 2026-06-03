@@ -4,265 +4,223 @@ const QRCode = require('qrcode');
 const http = require('http');
 
 let currentQR = '';
-let qrTimestamp = null;
 
-// سيرفر بسيط لعرض QR Code كصورة
+// =====================
+// QR Web Server
+// =====================
 http.createServer((req, res) => {
   if (req.url === '/qr') {
     if (!currentQR) {
       res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
-      res.end(`
-        <html><head><meta charset="utf-8">
-        <meta http-equiv="refresh" content="5">
-        <style>body{font-family:Arial;text-align:center;padding:50px;background:#f0f0f0}</style>
-        </head><body>
-        <h2>جاري تحميل QR Code...</h2>
-        <p>الصفحة ستتحدث تلقائياً</p>
-        </body></html>
-      `);
+      res.end('<html><head><meta charset="utf-8"><meta http-equiv="refresh" content="5"></head><body style="text-align:center;font-family:Arial;padding:50px"><h2>جاري تحميل QR Code...</h2></body></html>');
       return;
     }
     QRCode.toDataURL(currentQR, { width: 300 }, (err, url) => {
-      const now = new Date();
-      const expires = new Date(qrTimestamp.getTime() + 60000);
-      const remaining = Math.max(0, Math.round((expires - now) / 1000));
       res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
-      res.end(`
-        <html><head><meta charset="utf-8">
-        <meta http-equiv="refresh" content="60">
-        <style>
-          body{font-family:Arial;text-align:center;padding:30px;background:#f0f0f0}
-          img{border:8px solid #25D366;border-radius:12px;margin:20px}
-          h2{color:#075E54} p{color:#555;font-size:18px}
-          .timer{font-size:22px;font-weight:bold;color:#e74c3c}
-        </style>
-        </head><body>
-        <h2>امسح الكود بواتساب</h2>
-        <img src="${url}" width="300" height="300"/>
-        <p>افتح واتساب ← الأجهزة المرتبطة ← ربط جهاز</p>
-        <p class="timer">ينتهي خلال: ${remaining} ثانية</p>
-        <p style="color:#999;font-size:14px">الصفحة تتحدث تلقائياً كل دقيقة</p>
-        </body></html>
-      `);
+      res.end(`<html><head><meta charset="utf-8"><meta http-equiv="refresh" content="60">
+        <style>body{font-family:Arial;text-align:center;padding:30px;background:#f0f0f0}
+        img{border:8px solid #25D366;border-radius:12px;margin:20px}</style></head>
+        <body><h2>امسح الكود بواتساب</h2><img src="${url}" width="300"/>
+        <p>واتساب ← الأجهزة المرتبطة ← ربط جهاز</p></body></html>`);
     });
   } else {
     res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
-    res.end(`
-      <html><head><meta charset="utf-8">
-      <style>body{font-family:Arial;text-align:center;padding:50px;background:#f0f0f0}
-      a{display:inline-block;padding:15px 30px;background:#25D366;color:white;text-decoration:none;border-radius:8px;font-size:20px;margin-top:20px}
-      </style></head><body>
-      <h2>O2 WhatsApp Bot</h2>
-      <p>البوت شغال ✅</p>
-      <a href="/qr">عرض QR Code</a>
-      </body></html>
-    `);
+    res.end('<html><body style="text-align:center;font-family:Arial;padding:50px"><h2>O2 Bot ✅</h2><a href="/qr" style="background:#25D366;color:white;padding:12px 24px;border-radius:8px;text-decoration:none">عرض QR Code</a></body></html>');
   }
 }).listen(process.env.PORT || 3000);
 
-console.log(`السيرفر شغال على port ${process.env.PORT || 3000}`);
+// =====================
+// System Prompt كامل
+// =====================
+const SYSTEM_PROMPT = `أنت موظف استقبال في مطعم O2 في النصيرات — فلسطين.
+اسمك "أبو علي" وأنت إنسان حقيقي، دافئ، ودود، ومحترف.
+لا تذكر أبداً أنك بوت أو ذكاء اصطناعي — حتى لو سألوك مباشرة، قل إنك موظف المطعم.
+تتكلم بالعربية العامية الفلسطينية بشكل طبيعي وودود.
+ردودك قصيرة وطبيعية مثل موظف حقيقي على واتساب.
 
-// ===================================
-//   ردود البوت - عدّلها كما تريد
-// ===================================
-const replies = [
-  {
-    keys: ["مرحبا", "هلا", "اهلا", "السلام", "هاي", "hi", "hello", "مساء", "صباح"],
-    text: `أهلاً وسهلاً! 👋
-أنا بوت خدمة عملاء O2.
-كيف أقدر أساعدك؟
+═══════════════════════════
+المنيو الكامل مع الأسعار
+═══════════════════════════
 
-1️⃣ باقات الإنترنت
-2️⃣ الأسعار والعروض
-3️⃣ حجز موعد
-4️⃣ تقديم شكوى
-5️⃣ التحدث مع موظف`
-  },
-  {
-    keys: ["باقة", "نت", "انترنت", "اينترنت", "داتا", "بيانات", "باقات", "1"],
-    text: `باقات الإنترنت لدينا 📶
+🥙 الشاورما:
+فرشوحة عادي 20 ₪ | فرشوحة دبل 22 ₪ | فرشوحة دبل لحمة 28 ₪ | فرشوحة دبل دبل 30 ₪
+سوري 32 ₪ | صفيحة 38 ₪ | باشكا 45 ₪ | شاورما عربي 38 ₪ | شاورما إيطالي 38 ₪ | صحن شاورما 30 ₪
 
-🔹 باقة 10GB  — 15$ شهرياً
-🔹 باقة 25GB  — 25$ شهرياً
-🔹 باقة 50GB  — 40$ شهرياً
-🔹 باقة غير محدودة — 60$ شهرياً
+🍕 الإيطالي:
+كالزوني دجاج 35 ₪ | كالزوني خضار 20 ₪ | بيتزا مكسيكي دجاج 25 ₪
+بيتزا خضار وذرة وزيتون 20 ₪ | بيتزا ماما روزا 20 ₪ | نابولي 20 ₪ | مارغريتا 20 ₪ | صوص إكسترا 3 ₪
 
-للاشتراك أرسل: *اشتراك + اسم الباقة*`
-  },
-  {
-    keys: ["سعر", "تكلفة", "كم", "أسعار", "اسعار", "2"],
-    text: `أسعارنا 💰
+🍔 الساندويشات:
+زنجر 30 ₪ | بيج زنجر 40 ₪ | بيف برجر 30 ₪ | تشيكن برجر 30 ₪ | بيج ماك 40 ₪
+تشيكن بيتزا 30 ₪ | شيش طاووق 30 ₪ | فطيرة ذهبية 30 ₪ | بانسية 30 ₪ | باربكيو 30 ₪ | ستيك دجاج مشوي 30 ₪
 
-📱 باقات الإنترنت: تبدأ من 15$
-📞 باقات المكالمات: تبدأ من 10$
-📦 باقات مجمعة: تبدأ من 20$
+🥗 السلطات:
+بطاطا كبير 10 ₪ | سلطات وسط 10 ₪ | سلطات كبيرة 15 ₪
 
-أرسل *باقات* لعرض التفاصيل الكاملة`
-  },
-  {
-    keys: ["عرض", "خصم", "تخفيض", "عروض", "تنزيلات"],
-    text: `عروضنا الحالية 🎉
+☕ المشروبات الساخنة:
+نسكافيه 5 ₪ | كابتشينو 5 ₪ | إسبريسو سنجل 5 ₪ | إسبريسو دبل 10 ₪
+قهوة تركي سنجل 5 ₪ | قهوة تركي دبل 10 ₪ | شاي 3 ₪
 
-✅ خصم 20% على الباقة السنوية
-✅ شهر مجاني عند الاشتراك الجديد
-✅ ضعف البيانات لأول 3 أشهر
+🥤 المشروبات الباردة:
+عصير الموسم 12 ₪ | عصير أناناس 10 ₪ | عصير ليمون ونعناع 12 ₪ | عصير أفوكاتو 15 ₪
+شوكو بارد 10 ₪ | آيس موكا 10 ₪ | آيس كافي 10 ₪ | ميلك شيك سبيشل 20 ₪ | موهيتو 20 ₪
 
-العرض ينتهي قريباً — تواصل معنا الآن!`
-  },
-  {
-    keys: ["حجز", "موعد", "ميعاد", "زيارة", "فرع", "3"],
-    text: `حجز موعد في الفرع 📅
+🍰 حلويات البار:
+كنافة نوتيلا 15 ₪ | كنافة دبي 20 ₪ | مولتن كيك 20 ₪ | هوت كيك 20 ₪ | براونيز كيك 20 ₪
+أقسماط 25 ₪ | كريب 25 ₪ | ميني فيز كيك 25 ₪ | بان كيك 25 ₪ | وافل سنيك 25 ₪ | كريب دبي 30 ₪
 
-أرسل المعلومات التالية:
-• الاسم الكامل
-• رقم هاتفك
-• المدينة
-• الوقت المفضل
+🎂 الكيك والغربية:
+قطع كيك كلاسيكي 5 ₪ | تريليتشا 10 ₪ | تشيز كيك 10 ₪ | موس 10 ₪ | سوبرمان 18 ₪
+قالب كيك صغير كلاسيكي 60 ₪ | قالب كيك كبير كلاسيكي 80 ₪
+قالب كيك صغير سبيشل 80 ₪ | قالب كيك كبير سبيشل 100 ₪
 
-وسنتواصل معك خلال 24 ساعة لتأكيد الموعد ✅`
-  },
-  {
-    keys: ["إلغاء", "الغاء", "كنسل", "ألغي"],
-    text: `لإلغاء الموعد ❌
+🍦 الجيلاتو (كل النكهات 15 ₪):
+نوتيلا | بستاشيو | لوتس | كيندر | بلوبيري | عربية | كراميل | فلورا
 
-أرسل: *إلغاء + رقم الحجز*
-مثال: إلغاء 12345
+🍯 الحلويات الشرقية:
+نمورة 20 ₪ | كلاج 20 ₪ | كلاج زنجل 30 ₪ | عش البلبل 30 ₪ | سنبورة 30 ₪ | كول واشكر 30 ₪
+كنافة عربية 40 ₪ | بقلاوة لوز 48 ₪ | أساور لوز 48 ₪ | أساور كاجو 48 ₪
+بقلاوة عين جمل 55 ₪ | نابلسية 60 ₪ | ملكية 80 ₪ | كاسات مكسرات 80 ₪
+بورمة حلبي 100 ₪ | بقلاوة حلبي 100 ₪ | بلورية حلبي 130 ₪ | دولمة حلبي 130 ₪
 
-أو تواصل معنا على: 9200`
-  },
-  {
-    keys: ["شكوى", "مشكلة", "عطل", "خراب", "مشاكل", "4"],
-    text: `تسجيل شكوى 📝
+═══════════════════════════
+معلومات المطعم
+═══════════════════════════
+الموقع: النصيرات — شارع أبو صرار
+الدوام: 11 صباحاً حتى 11 مساءً، كل أيام الأسبوع
 
-نأسف على الإزعاج!
-رقم تذكرتك: #${Math.floor(10000 + Math.random() * 90000)}
+رسوم التوصيل:
+- النصيرات (مستشفى العودة): 5 ₪
+- النصيرات عام: 10 ₪
+- السوارحة والبريج: 15 ₪
+- الزوايدة والمغازي: 20 ₪
+- دير البلح: 35 ₪
 
-سيتواصل معك فريق الدعم خلال 2-4 ساعات.
+بيانات التحويل البنكي:
+الاسم: فادي أبو شرخ | بنك فلسطين | جوال: 0567743979
+IBAN: PS43PALS045411071670993000000
 
-لمتابعة شكواك أرسل: *متابعة + رقم التذكرة*`
-  },
-  {
-    keys: ["متابعة", "تتبع", "وصلت", "وين"],
-    text: `متابعة الشكوى 🔍
+═══════════════════════════
+تعليمات الطلب
+═══════════════════════════
+عندما يريد الزبون الطلب:
+1. اجمع كل الأصناف التي يريدها رسالة بعد رسالة
+2. احسب المجموع
+3. اسأله: توصيل أم استلام من المطعم؟
+4. إذا توصيل: اسأل عن العنوان وأضف رسوم التوصيل تلقائياً حسب المنطقة
+5. اطلب الاسم ورقم الهاتف
+6. أرسل ملخص الطلب النهائي مع المجموع الكلي
+7. اطلب تأكيده
 
-أرسل رقم التذكرة وسنزودك بآخر تحديث فوراً.
+قواعد مهمة:
+- إذا سأل عن صنف فقط: أجب بالسعر ولا تضيفه للطلب
+- إذا قال "بدي" أو "اطلب" أو ذكر كمية: ضعه في الطلب
+- إذا كان الصنف غير واضح: اسأله بشكل طبيعي
+- لا تُظهر قائمة طويلة إلا إذا طلبها، اعرض القسم الذي سأل عنه فقط
+- كن دافئاً وودوداً مثل موظف محترف
+- ردودك قصيرة وطبيعية، لا تكتب فقرات طويلة
+- استخدم الإيموجي باعتدال`;
 
-حالة شكواك الحالية: *قيد المعالجة* ⏳`
-  },
-  {
-    keys: ["استرداد", "فلوس", "مبلغ", "رجعلي", "رد مبلغ"],
-    text: `طلب استرداد مبلغ 💳
+// =====================
+// محادثات الزبائن
+// =====================
+const conversations = {};
 
-لتقديم طلب الاسترداد أرسل:
-• رقم الفاتورة
-• المبلغ المراد استرداده
-• سبب الطلب
-
-سيتم مراجعة طلبك خلال 5-7 أيام عمل`
-  },
-  {
-    keys: ["موظف", "بشري", "شخص", "انسان", "تحدث", "5"],
-    text: `التحويل لموظف 👨‍💼
-
-سيتم تحويلك لأحد موظفينا خلال دقائق.
-أوقات الدوام: 9 صباحاً - 9 مساءً
-
-إذا كان خارج أوقات الدوام سنتواصل معك في أقرب وقت ✅`
-  },
-  {
-    keys: ["شكرا", "شكراً", "ممتاز", "تمام", "يسلمو", "مشكور"],
-    text: `العفو! يسعدنا خدمتك دائماً 😊
-لا تتردد بالتواصل معنا في أي وقت.
-
-O2 — دائماً في خدمتك 💚`
-  },
-];
-
-const defaultReply = `شكراً على رسالتك! 🤖
-
-للمساعدة اكتب إحدى الكلمات التالية:
-• *باقات* — لعرض باقات الإنترنت
-• *أسعار* — لمعرفة الأسعار
-• *عروض* — للعروض والخصومات
-• *حجز موعد* — لحجز في الفرع
-• *شكوى* — لتقديم شكوى
-• *موظف* — للتحدث مع موظف
-
-أو اتصل بنا: 9200`;
-
-function findReply(msg) {
-  const lower = msg.toLowerCase().trim();
-  for (const r of replies) {
-    if (r.keys.some(k => lower.includes(k))) {
-      return r.text;
-    }
-  }
-  return null;
+function getHistory(from) {
+  if (!conversations[from]) conversations[from] = [];
+  return conversations[from];
 }
 
+function addToHistory(from, role, content) {
+  const history = getHistory(from);
+  history.push({ role, content });
+  // احتفظ بآخر 30 رسالة فقط
+  if (history.length > 30) history.splice(0, history.length - 30);
+}
+
+// =====================
+// Claude AI
+// =====================
+async function askClaude(from, userMessage) {
+  addToHistory(from, 'user', userMessage);
+  const history = getHistory(from);
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      system: SYSTEM_PROMPT,
+      messages: history
+    })
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error('Claude API error:', data);
+    throw new Error(data.error?.message || 'API error');
+  }
+
+  const reply = data.content[0].text;
+  addToHistory(from, 'assistant', reply);
+  return reply;
+}
+
+// =====================
+// WhatsApp Client
+// =====================
 const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
     args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--no-zygote',
-      '--single-process'
+      '--no-sandbox', '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage', '--disable-gpu',
+      '--no-zygote', '--single-process'
     ]
   }
 });
 
 client.on('qr', qr => {
   currentQR = qr;
-  qrTimestamp = new Date();
-  console.log('QR Code جديد — افتح رابط /qr لمسحه');
+  console.log('QR Code جاهز — افتح رابط /qr');
   qrcode.generate(qr, { small: true });
-
-  // تجديد تلقائي كل 60 ثانية
-  setTimeout(() => {
-    if (currentQR === qr) {
-      currentQR = '';
-      console.log('QR Code انتهت صلاحيته — سيظهر كود جديد قريباً');
-    }
-  }, 60000);
+  setTimeout(() => { if (currentQR === qr) currentQR = ''; }, 60000);
 });
 
 client.on('ready', () => {
   currentQR = '';
-  console.log('\n==========================================');
-  console.log('        البوت شغال بنجاح! ✅');
-  console.log('==========================================\n');
+  console.log('البوت شغال! ✅');
 });
 
-client.on('auth_failure', () => {
-  console.log('فشل تسجيل الدخول — أعد تشغيل البوت');
-});
-
-client.on('disconnected', (reason) => {
-  console.log('البوت انقطع:', reason);
-  console.log('جاري إعادة الاتصال...');
-  client.initialize();
+client.on('disconnected', () => {
+  console.log('انقطع الاتصال، جاري الإعادة...');
+  setTimeout(() => client.initialize(), 3000);
 });
 
 client.on('message', async msg => {
   try {
-    if (msg.from.endsWith('@g.us')) return;
-    if (msg.fromMe) return;
+    if (msg.from.endsWith('@g.us') || msg.fromMe) return;
 
-    console.log(`رسالة من ${msg.from}: ${msg.body}`);
+    console.log(`📨 من ${msg.from}: ${msg.body}`);
 
-    const reply = findReply(msg.body);
-    if (reply) {
-      await msg.reply(reply);
-      console.log('تم الرد تلقائياً ✅');
-    } else {
-      await msg.reply(defaultReply);
-      console.log('تم إرسال الرد الافتراضي');
-    }
+    // مؤشر "يكتب..."
+    const chat = await msg.getChat();
+    await chat.sendStateTyping();
+
+    const reply = await askClaude(msg.from, msg.body);
+    await msg.reply(reply);
+
+    console.log(`✅ الرد: ${reply.substring(0, 60)}...`);
+
   } catch (err) {
-    console.error('خطأ في معالجة الرسالة:', err);
+    console.error('خطأ:', err);
+    await msg.reply('عذراً، صار خطأ تقني. حاول مرة ثانية 🙏');
   }
 });
 
