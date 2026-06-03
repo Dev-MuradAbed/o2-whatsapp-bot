@@ -449,6 +449,7 @@ async function handleMessage(msg) {
 function getChromePath() {
   const paths = [
     process.env.PUPPETEER_EXECUTABLE_PATH,
+    '/opt/render/project/src/.cache/puppeteer/chrome/linux-146.0.7680.31/chrome-linux64/chrome',
     '/usr/bin/google-chrome-stable',
     '/usr/bin/google-chrome',
     '/usr/bin/chromium-browser',
