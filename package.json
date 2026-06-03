@@ -1,9 +1,9 @@
 {
   "name": "o2-whatsapp-bot",
   "version": "1.0.0",
-  "description": "بوت واتساب لخدمة عملاء O2",
   "main": "index.js",
   "scripts": {
+    "build": "npx puppeteer browsers install chrome",
     "start": "node index.js"
   },
   "dependencies": {
