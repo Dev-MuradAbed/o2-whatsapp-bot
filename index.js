@@ -345,7 +345,10 @@ async function handleMessage(msg) {
 // =====================
 function initBot() {
   console.log('⏳ جاري تهيئة البوت...');
-
+  setTimeout(() => {
+    console.log('⏳ جاري تهيئة البوت...');
+    // باقي الكود
+  }, 5000);
   // ابحث عن Chrome
   const possiblePaths = [
     process.env.PUPPETEER_EXECUTABLE_PATH,
