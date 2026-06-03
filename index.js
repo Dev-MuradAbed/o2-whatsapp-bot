@@ -4,36 +4,63 @@ const QRCode = require('qrcode');
 const http = require('http');
 
 let currentQR = '';
+let qrTimestamp = null;
 
+// سيرفر بسيط لعرض QR Code كصورة
 http.createServer((req, res) => {
   if (req.url === '/qr') {
     if (!currentQR) {
-      res.writeHead(200, {'Content-Type': 'text/html'});
-      res.end('<h2>QR Code لم يظهر بعد، انتظر ثانية وأعد التحميل</h2>');
+      res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
+      res.end(`
+        <html><head><meta charset="utf-8">
+        <meta http-equiv="refresh" content="5">
+        <style>body{font-family:Arial;text-align:center;padding:50px;background:#f0f0f0}</style>
+        </head><body>
+        <h2>جاري تحميل QR Code...</h2>
+        <p>الصفحة ستتحدث تلقائياً</p>
+        </body></html>
+      `);
       return;
     }
-    QRCode.toDataURL(currentQR, (err, url) => {
-      res.writeHead(200, {'Content-Type': 'text/html'});
-      res.end(`<img src="${url}" style="width:300px"/>`);
+    QRCode.toDataURL(currentQR, { width: 300 }, (err, url) => {
+      const now = new Date();
+      const expires = new Date(qrTimestamp.getTime() + 60000);
+      const remaining = Math.max(0, Math.round((expires - now) / 1000));
+      res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
+      res.end(`
+        <html><head><meta charset="utf-8">
+        <meta http-equiv="refresh" content="60">
+        <style>
+          body{font-family:Arial;text-align:center;padding:30px;background:#f0f0f0}
+          img{border:8px solid #25D366;border-radius:12px;margin:20px}
+          h2{color:#075E54} p{color:#555;font-size:18px}
+          .timer{font-size:22px;font-weight:bold;color:#e74c3c}
+        </style>
+        </head><body>
+        <h2>امسح الكود بواتساب</h2>
+        <img src="${url}" width="300" height="300"/>
+        <p>افتح واتساب ← الأجهزة المرتبطة ← ربط جهاز</p>
+        <p class="timer">ينتهي خلال: ${remaining} ثانية</p>
+        <p style="color:#999;font-size:14px">الصفحة تتحدث تلقائياً كل دقيقة</p>
+        </body></html>
+      `);
     });
   } else {
-    res.writeHead(200);
-    res.end('Bot is running');
+    res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
+    res.end(`
+      <html><head><meta charset="utf-8">
+      <style>body{font-family:Arial;text-align:center;padding:50px;background:#f0f0f0}
+      a{display:inline-block;padding:15px 30px;background:#25D366;color:white;text-decoration:none;border-radius:8px;font-size:20px;margin-top:20px}
+      </style></head><body>
+      <h2>O2 WhatsApp Bot</h2>
+      <p>البوت شغال ✅</p>
+      <a href="/qr">عرض QR Code</a>
+      </body></html>
+    `);
   }
 }).listen(process.env.PORT || 3000);
-const client = new Client({
-  authStrategy: new LocalAuth(),
-  puppeteer: {
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-gpu',
-      '--no-zygote',
-      '--single-process'
-    ]
-  }
-});
+
+console.log(`السيرفر شغال على port ${process.env.PORT || 3000}`);
 
 // ===================================
 //   ردود البوت - عدّلها كما تريد
@@ -173,14 +200,37 @@ function findReply(msg) {
   return null;
 }
 
+const client = new Client({
+  authStrategy: new LocalAuth(),
+  puppeteer: {
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--no-zygote',
+      '--single-process'
+    ]
+  }
+});
+
 client.on('qr', qr => {
-  console.log('\n==========================================');
-  console.log('   امسح هذا الكود بواتساب لتفعيل البوت');
-  console.log('==========================================\n');
+  currentQR = qr;
+  qrTimestamp = new Date();
+  console.log('QR Code جديد — افتح رابط /qr لمسحه');
   qrcode.generate(qr, { small: true });
+
+  // تجديد تلقائي كل 60 ثانية
+  setTimeout(() => {
+    if (currentQR === qr) {
+      currentQR = '';
+      console.log('QR Code انتهت صلاحيته — سيظهر كود جديد قريباً');
+    }
+  }, 60000);
 });
 
 client.on('ready', () => {
+  currentQR = '';
   console.log('\n==========================================');
   console.log('        البوت شغال بنجاح! ✅');
   console.log('==========================================\n');
@@ -206,10 +256,10 @@ client.on('message', async msg => {
     const reply = findReply(msg.body);
     if (reply) {
       await msg.reply(reply);
-      console.log(`تم الرد تلقائياً ✅`);
+      console.log('تم الرد تلقائياً ✅');
     } else {
       await msg.reply(defaultReply);
-      console.log(`تم إرسال الرد الافتراضي`);
+      console.log('تم إرسال الرد الافتراضي');
     }
   } catch (err) {
     console.error('خطأ في معالجة الرسالة:', err);
